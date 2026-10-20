@@ -1,0 +1,56 @@
+{
+  "name": "Error Handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        -800,
+        -16
+      ],
+      "id": "ba0c791c-ed82-4214-b27c-f28e6620a5b9",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nconst workflowName = data.workflow?.name || 'Unknown workflow';\nconst nodeName = data.execution?.lastNodeExecuted || 'Unknown node';\nconst errorMessage = data.execution?.error?.message || 'Unknown error';\nconst executionUrl = data.execution?.url || '';\nconst time = new Date().toISOString();\n\nconst alertText = `🚨 ERREUR\n\nWorkflow: ${workflowName}\nNode: ${nodeName}\nErreur: ${errorMessage}\nHeure: ${time}\n\n${executionUrl ? 'Détails: ' + executionUrl : ''}`;\n\nreturn [{\n  json: {\n    workflow_name: workflowName,\n    node_name: nodeName,\n    error_message: errorMessage,\n    execution_url: executionUrl,\n    time: time,\n    alert_text: alertText\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -416,
+        -16
+      ],
+      "id": "3520dd97-5894-489c-adf1-bfa777d2ac90",
+      "name": "Code — Format Error Alert"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Code — Format Error Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "b24381fc-846d-48e1-a848-ec7af98110bb",
+  "meta": {
+    "instanceId": "7409611ab52772f17afb66b533cb1cb9d9b001b4a37d8385bbc1a0bcfae7477e"
+  },
+  "nodeGroups": [],
+  "id": "7vptGYQaENfNWCDI",
+  "tags": []
+}

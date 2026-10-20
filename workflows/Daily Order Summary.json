@@ -1,0 +1,134 @@
+{
+  "name": "Daily Order Summary",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 20
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -608,
+        -64
+      ],
+      "id": "d89a56b4-6e76-4871-86a0-7e534c22f640",
+      "name": "Schedule — Every Day 8pm"
+    },
+    {
+      "parameters": {
+        "jsCode": "const orders = $input.all().map(i => i.json);\n\nconst count = orders.length;\n\nconst itemTotals = {};\nfor (const order of orders) {\n  // Match your sheet column headers exactly: \"Items\" with capital I\n  let items = order.Items || order.items;\n  \n  if (!items) continue;\n  \n  if (typeof items === 'string') {\n    try {\n      items = JSON.parse(items);\n    } catch (e) {\n      continue;\n    }\n  }\n  \n  if (Array.isArray(items)) {\n    for (const it of items) {\n      const name = it.name || it.item || 'unknown';\n      const qty = Number(it.quantity || it.qty || 1);\n      itemTotals[name] = (itemTotals[name] || 0) + qty;\n    }\n  }\n}\n\nconst summaryLines = Object.entries(itemTotals)\n  .map(([name, qty]) => `• ${qty}x ${name}`)\n  .join('\\n');\n\nconst summaryText = count === 0\n  ? '📋 Aucune commande.'\n  : `📋 Résumé\\n\\n${count} commande(s)\\n\\n${summaryLines || '(pas de détails)'}\\n\\nBonne soirée!`;\n\nreturn [{\n  json: {\n    date: new Date().toISOString().split('T')[0],\n    order_count: count,\n    summary_text: summaryText\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -192,
+        -64
+      ],
+      "id": "9a690d23-6720-4370-be95-f9cfc6801572",
+      "name": "Code — Format Summary"
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "documentId": {
+          "__rl": true,
+          "value": "1xncp4QotFGnbSkmsyBm49BamjQ8TM45iN1-FFUMN4r0",
+          "mode": "list",
+          "cachedResultName": "Bakery commands",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xncp4QotFGnbSkmsyBm49BamjQ8TM45iN1-FFUMN4r0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Commands",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xncp4QotFGnbSkmsyBm49BamjQ8TM45iN1-FFUMN4r0/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        -400,
+        -64
+      ],
+      "id": "0a11f43b-adb4-4678-9061-2bec369df356",
+      "name": "Sheets — Read Today's Orders",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "googleApi": {
+          "id": "rwLDog0eHzkSE7tc",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [
+        16,
+        -64
+      ],
+      "id": "0b1e260b-7cb3-4482-95b9-26aeda0c8365",
+      "name": "TODO — WhatsApp Send Summary to Owner"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule — Every Day 8pm": {
+      "main": [
+        [
+          {
+            "node": "Sheets — Read Today's Orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sheets — Read Today's Orders": {
+      "main": [
+        [
+          {
+            "node": "Code — Format Summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code — Format Summary": {
+      "main": [
+        [
+          {
+            "node": "TODO — WhatsApp Send Summary to Owner",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "01bfa687-27db-401e-9230-6b8cd8e6390a",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "7409611ab52772f17afb66b533cb1cb9d9b001b4a37d8385bbc1a0bcfae7477e"
+  },
+  "nodeGroups": [],
+  "id": "YAdVOvcjr1peMTMi",
+  "tags": []
+}
